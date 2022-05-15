@@ -26,9 +26,11 @@ void hash_data(void *out_hash, const void *data)
 	
 	// data is past the first SHA256 step (padding and interpreting as big endian on a little endian platform), so we need to flip each 32-bit chunk around to get the original input block header
 	swap32yes(blkheader, data, 80 / 4);
-	
+
 	// double-SHA256 to get the block hash
-	gen_hash(blkheader, out_hash, 80);
+	unsigned char hash1[32];
+	sha256t(blkheader, 80, hash1);
+	sha256t(hash1, 32, out_hash);
 }
 
 #ifdef USE_OPENCL

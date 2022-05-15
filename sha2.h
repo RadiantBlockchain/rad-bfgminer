@@ -70,4 +70,9 @@ void sha256_final(sha256_ctx *ctx, unsigned char *digest);
 void sha256(const unsigned char *message, unsigned int len,
             unsigned char *digest);
 
+void sha256t_init(sha256_ctx * ctx);
+void sha256t_final(sha256_ctx *ctx, unsigned char *digest);
+void sha256t(const unsigned char *message, unsigned int len,
+            unsigned char *digest);
+
 #endif /* !SHA2_H */

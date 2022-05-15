@@ -209,3 +209,53 @@ void sha256_final(sha256_ctx *ctx, unsigned char *digest)
         UNPACK32(ctx->h[i], &digest[i << 2]);
     }
 }
+
+uint32_t sha256t_h0[8] =
+            {0xdfa9bf2c, 0xb72074d4, 0x6bb01122, 0xd338e869,
+            0xaa3ff126, 0x475bbf30, 0x8fd52e5b, 0x9f75c9ad};
+
+void sha256t(const unsigned char *message, unsigned int len, unsigned char *digest)
+{
+    sha256_ctx ctx;
+
+    sha256t_init(&ctx);
+    sha256_update(&ctx, message, len);
+    sha256t_final(&ctx, digest);
+}
+
+void sha256t_init(sha256_ctx *ctx)
+{
+    int i;
+    for (i = 0; i < 8; i++) {
+        ctx->h[i] = sha256t_h0[i];
+    }
+
+    ctx->len = 0;
+    ctx->tot_len = 0;
+}
+
+void sha256t_final(sha256_ctx *ctx, unsigned char *digest)
+{
+    unsigned int block_nb;
+    unsigned int pm_len;
+    unsigned int len_b;
+
+    int i;
+
+    block_nb = (1 + ((SHA256_BLOCK_SIZE - 9)
+                     < (ctx->len % SHA256_BLOCK_SIZE)));
+
+
+    len_b = (ctx->tot_len + ctx->len + 64) << 3;
+    pm_len = block_nb << 6;
+
+    memset(ctx->block + ctx->len, 0, pm_len - ctx->len);
+    ctx->block[ctx->len] = 0x80;
+    UNPACK32(len_b, ctx->block + pm_len - 4);
+
+    sha256_transf(ctx, ctx->block, block_nb);
+
+    for (i = 0 ; i < 8; i++) {
+        UNPACK32(ctx->h[i], &digest[i << 2]);
+    }
+}

@@ -3132,7 +3132,7 @@ static void calc_midstate(struct work *work)
 
 	swap32yes(&data.i[0], work->data, 16);
 	sha256_ctx ctx;
-	sha256_init(&ctx);
+	sha256t_init(&ctx);
 	sha256_update(&ctx, data.c, 64);
 	memcpy(work->midstate, ctx.h, sizeof(work->midstate));
 	swap32tole(work->midstate, work->midstate, 8);
