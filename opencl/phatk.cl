@@ -303,10 +303,10 @@ void search(	const uint state0, const uint state1, const uint state2, const uint
 	Vals[6]=H[6];
 	Vals[7]=H[7];
 
-	sharound(64 + 0);
-	// const u Temp = (0xb0edbdd0U + K[0]) +  W[64];
-	// Vals[7] = Temp + 0x6810571cU;
-	// Vals[3] = 0xd338e869U + Temp;
+	// sharound(64 + 0);
+	const u Temp = 0x18b60e42d +  W[64];
+	Vals[7] = Temp + 0x6810571cU;
+	Vals[3] = 0xd338e869U + Temp;
 	
 #define P124(n) P2(n) + P1(n) + P4(n)
 
