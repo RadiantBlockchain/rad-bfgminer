@@ -53,13 +53,13 @@ __constant uint K[] = {
 	0x72be5d74U,
 	0x80deb1feU,
 	0x9bdc06a7U,
-	0xc19bf3f4U,
+	0xc19bf5f4U, // 0xc19bf174 + 0x00000480
 	0x0fc19dc6U,
 	0x240ca1ccU,
 	0x80000000U, // 10
 	0x2de92c6fU,
 	0x4a7484aaU,
-	0x00000280U,
+	0x00000480U, // Change length from 280 to 480
 	0x5cb0a9dcU,
 	0x76f988daU,
 	0x983e5152U,
@@ -67,7 +67,7 @@ __constant uint K[] = {
 	0xb00327c8U,
 	0xbf597fc7U,
 	0xc6e00bf3U, // 20
-	0x00A00055U,
+	0x01200099U, // rotr(0x00000480, 7) ^ rotr(0x00000480, 18) ^ 0x00000480 >> 3
 	0xd5a79147U,
 	0x06ca6351U,
 	0x14292967U,
@@ -102,30 +102,30 @@ __constant uint K[] = {
 	0x90befffaU,
 	0xa4506cebU,
 	0xbef9a3f7U,
-	0xc67178f2U,
-	0x98c7e2a2U,
-	0x90bb1e3cU,
-	0x510e527fU,
-	0x9b05688cU, // 60
-	0xfc08884dU,
-	0x3c6ef372U,
-	0x50c6645bU,
-	0x6a09e667U,
-	0xbb67ae85U,
-	0x3ac42e24U,
-	0xd21ea4fdU,
+	0xc67178f2U, // End of sha256 constants
+    0x5e99cc96U, // 2nd round e without W[0]
+	0x010c72ecU, // H[6] + K[1]
+	0xaa3ff126U, // H[4]
+	0x475bbf30U, // 60 H[5]
+    0xf3713b49U, // 2nd round a
+	0x6bb01122U, // H[2]
+	0xfd1cbaffU, // H[5] + K[2]
+	0xdfa9bf2cU, // H[0]
+	0xb72074d4U, // H[1]
+	0x93f5cccbU, // H[3] + K[3]
+    0x97f08ef1U, // 1st round e + K[4]
 	0x59f111f1U,
 	0x923f82a4U,
 	0xab1c5ed5U, // 70
-	0x5807aa98U,
-	0xc19bf274U,
+	0x5807aa98U, // No change: K[8] + 0x80000000
+	0xc19bf474U, // K[15] + 0x300
 	0xe49b69c1U,
-	0x00a00000U,
+	0x01e00000U, // rotr(0x00000300, 17) ^ rotr(0x00000300, 19) ^ 0x00000300 >> 10
 	0xefbe4786U,
-	0x00000100U,
-	0x11002000U,
-	0x00400022U,
-	0x136032EDU
+	0x00000300U, // Changed 0x100 to 0x300
+	0x11002000U, // No change
+	0x00c00066U, // rotr(0x00000100, 7) ^ rotr(0x00000100, 18) ^ 0x00000100 >> 3
+	-0x3034c9a7U // 0x100000000 - K[60] - H[7]
 };
 
 #define ZR25(n) ((Zrotr((n), 25) ^ Zrotr((n), 14) ^ ((n) >> 3U)))
