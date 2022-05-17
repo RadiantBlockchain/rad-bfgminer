@@ -1,3 +1,22 @@
+Novo Bitcoin Miner
+
+This miner has been modified to work with Novo Bitcoin's sha256dt algorithm
+
+Compile with OpenCL enabled:
+
+./configure --enable-opencl
+
+When running bfgminer enable OpenCL. You can also select a kernel.
+
+Working kernels:
+* poclbm
+* diablo
+* phatk
+
+Example:
+
+bfgminer -S opencl:auto -o stratum+tcp://pool:port -u user -p password --set-device OCL:kernel=poclbm
+
 BFGMiner:
 St. Barbara's Faithfully Glorified Mining Initiative Naturally Exceeding Rivals
 or Basically a Freaking Good Miner
