@@ -3495,6 +3495,8 @@ static bool work_decode(struct pool *pool, struct work *work, json_t *val)
 	if (work->tr)
 	{
 		blktemplate_t * const tmpl = work->tr->tmpl;
+		tmpl->mutations |= BMM_VERFORCE;
+
 		const char *err = blktmpl_add_jansson(tmpl, res_val, tv_now.tv_sec);
 		if (err) {
 			applog(LOG_ERR, "blktmpl error: %s", err);
