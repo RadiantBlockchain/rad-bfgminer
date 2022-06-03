@@ -3,8 +3,9 @@
  * Last update: 02/02/2007
  * Issue date:  04/30/2005
  *
- * Copyright 2013 Con Kolivas
- * Copyright 2005, 2007 Olivier Gay
+ * Copyright (C) 2022, The Radiant Blockchain Developers <radiantblockchain@protonmail.com>
+ * Copyright (C) 2013, Con Kolivas <kernel@kolivas.org>
+ * Copyright (C) 2005, 2007 Olivier Gay <olivier.gay@a3.epfl.ch>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,21 +34,37 @@
  */
 
 #include "config.h"
-
 #include <stdint.h>
-
 #include "miner.h"
 
 #ifndef SHA2_H
 #define SHA2_H
 
+#define SHA224_DIGEST_SIZE ( 224 / 8)
 #define SHA256_DIGEST_SIZE ( 256 / 8)
+#define SHA384_DIGEST_SIZE ( 384 / 8)
+#define SHA512_DIGEST_SIZE ( 512 / 8)
+
 #define SHA256_BLOCK_SIZE  ( 512 / 8)
+#define SHA512_BLOCK_SIZE  (1024 / 8)
+#define SHA384_BLOCK_SIZE  SHA512_BLOCK_SIZE
+#define SHA224_BLOCK_SIZE  SHA256_BLOCK_SIZE
 
 #define SHFR(x, n)    (x >> n)
 #define ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))
 #define CH(x, y, z)  ((x & y) ^ (~x & z))
 #define MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
+
+//#ifndef SHA2_TYPES
+//#define SHA2_TYPES
+//typedef unsigned char uint8_t;
+//typedef unsigned int  uint32_t;
+//typedef unsigned long long uint64_t;
+//#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SHA256_F1(x) (ROTR(x,  2) ^ ROTR(x, 13) ^ ROTR(x, 22))
 #define SHA256_F2(x) (ROTR(x,  6) ^ ROTR(x, 11) ^ ROTR(x, 25))
@@ -63,6 +80,24 @@ typedef struct {
 
 extern uint32_t sha256_k[64];
 
+typedef struct {
+    unsigned int tot_len;
+    unsigned int len;
+    unsigned char block[2 * SHA512_BLOCK_SIZE];
+    uint64_t h[8];
+} sha512_ctx;
+
+typedef sha512_ctx sha384_ctx;
+typedef sha512_ctx sha512_256_ctx;
+typedef sha256_ctx sha224_ctx;
+
+void sha224_init(sha224_ctx *ctx);
+void sha224_update(sha224_ctx *ctx, const unsigned char *message,
+                   unsigned int len);
+void sha224_final(sha224_ctx *ctx, unsigned char *digest);
+void sha224(const unsigned char *message, unsigned int len,
+            unsigned char *digest);
+
 void sha256_init(sha256_ctx * ctx);
 void sha256_update(sha256_ctx *ctx, const unsigned char *message,
                    unsigned int len);
@@ -74,5 +109,29 @@ void sha256t_init(sha256_ctx * ctx);
 void sha256t_final(sha256_ctx *ctx, unsigned char *digest);
 void sha256t(const unsigned char *message, unsigned int len,
             unsigned char *digest);
+void sha384_init(sha384_ctx *ctx);
+void sha384_update(sha384_ctx *ctx, const unsigned char *message,
+                   unsigned int len);
+void sha384_final(sha384_ctx *ctx, unsigned char *digest);
+void sha384(const unsigned char *message, unsigned int len,
+            unsigned char *digest);
+
+void sha512_init(sha512_ctx *ctx);
+void sha512_update(sha512_ctx *ctx, const unsigned char *message,
+                   unsigned int len);
+void sha512_final(sha512_ctx *ctx, unsigned char *digest);
+void sha512(const unsigned char *message, unsigned int len,
+            unsigned char *digest);
+
+void sha512_256_init(sha512_ctx *ctx);
+void sha512_256_update(sha512_ctx *ctx, const unsigned char *message,
+                   unsigned int len);
+void sha512_256_final(sha512_ctx *ctx, unsigned char *digest);
+void sha512_256(const unsigned char *message, unsigned int len,
+            unsigned char *digest);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !SHA2_H */
