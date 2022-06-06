@@ -2763,6 +2763,9 @@ static bool parse_diff(struct pool *pool, json_t *val)
 	if (malgo->algo == POW_SHA256D && diff < 1 && diff > 0.999)
 		diff = 1;
 #endif
+
+	if (malgo->algo == POW_SHA512_256D && diff < 1 && diff > 0.999)
+		diff = 1;
 	
 #ifdef USE_SCRYPT
 	// Broken Scrypt pools multiply difficulty by 0x10000

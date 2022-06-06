@@ -27,4 +27,6 @@ extern void precalc_hash(struct opencl_work_data *blk, uint32_t *state, uint32_t
 #endif
 extern void postcalc_hash_async(struct thr_info *thr, struct work *work, uint32_t *res, enum cl_kernels);
 
+void precalc_sha512_256(struct rad_work_data *blk, uint64_t *data);
+
 #endif /*__FINDNONCE_H__*/

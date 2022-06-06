@@ -989,8 +989,66 @@ const char *opencl_tui_handle_choice(struct cgpu_info *cgpu, int input)
 
 
 #define CL_SET_BLKARG(blkvar) status |= clSetKernelArg(*kernel, num++, sizeof(uint), (void *)&blk->blkvar)
+#define CL_SET_BLKARG_LONG(blkvar) status |= clSetKernelArg(*kernel, num++, sizeof(ulong), (void *)&blk->blkvar)
 #define CL_SET_ARG(var) status |= clSetKernelArg(*kernel, num++, sizeof(var), (void *)&var)
 #define CL_SET_VARG(args, var) status |= clSetKernelArg(*kernel, num++, args * sizeof(uint), (void *)var)
+
+static
+void *_rad_work_data_dup(struct work * const work)
+{
+	struct rad_work_data *p = malloc(sizeof(*p));
+	memcpy(p, work->device_data, sizeof(*p));
+	return p;
+}
+
+static
+void _rad_work_data_free(struct work * const work)
+{
+	free(work->device_data);
+}
+
+static
+struct rad_work_data *_rad_work_data(struct work * const work)
+{
+	if (!work->device_data)
+	{
+		work->device_data = calloc(1, sizeof(struct rad_work_data));
+		work->device_data_dup_func = _rad_work_data_dup;
+		work->device_data_free_func = _rad_work_data_free;
+	}
+	return work->device_data;
+}
+
+static
+cl_int queue_rad_kernel(const struct opencl_kernel_info * const kinfo, _clState * const clState, struct work * const work, __maybe_unused const cl_uint threads)
+{
+	struct rad_work_data * const blk = _rad_work_data(work);
+	const cl_kernel * const kernel = &kinfo->kernel;
+	cl_uint vwidth = clState->vwidth;
+	unsigned int i, num = 0;
+	cl_int status = 0;
+	uint *nonces;
+
+	CL_SET_BLKARG_LONG(w0);
+	CL_SET_BLKARG_LONG(w1);
+	CL_SET_BLKARG_LONG(w2);
+	CL_SET_BLKARG_LONG(w3);
+	CL_SET_BLKARG_LONG(w4);
+	CL_SET_BLKARG_LONG(w5);
+	CL_SET_BLKARG_LONG(w6);
+	CL_SET_BLKARG_LONG(w7);
+	CL_SET_BLKARG_LONG(w8);
+	CL_SET_BLKARG_LONG(w9);
+
+	nonces = alloca(sizeof(uint) * vwidth);
+	for (i = 0; i < vwidth; i++)
+		nonces[i] = work->blk.nonce + i;
+	CL_SET_VARG(vwidth, nonces);
+
+	CL_SET_ARG(clState->outputBuffer);
+
+	return status;
+}
 
 #ifdef USE_SHA256D
 static
@@ -1301,6 +1359,7 @@ cl_int queue_fullheader_kernel(const struct opencl_kernel_info * const kinfo, _c
 static
 struct opencl_kernel_interface kernel_interfaces[] = {
 	{NULL},
+	{"rad", queue_rad_kernel },
 #ifdef USE_SHA256D
 	{"poclbm",  queue_poclbm_kernel },
 	{"phatk",   queue_phatk_kernel  },
@@ -1717,18 +1776,23 @@ float opencl_min_nonce_diff(struct cgpu_info * const proc, const struct mining_a
 	return malgo->opencl_min_nonce_diff ?: -1.;
 }
 
-#ifdef USE_SHA256D
 static bool opencl_prepare_work(struct thr_info __maybe_unused *thr, struct work *work)
 {
 	const struct mining_algorithm * const malgo = work_mining_algorithm(work);
+#ifdef USE_SHA256D
 	if (malgo->algo == POW_SHA256D)
 	{
 		struct opencl_work_data * const blk = _opencl_work_data(work);
 		precalc_hash(blk, (uint32_t *)(work->midstate), (uint32_t *)(work->data + 64));
 	}
+#endif
+	if (malgo->algo == POW_SHA512_256D)
+	{
+		struct rad_work_data * const blk = _rad_work_data(work);
+		precalc_sha512_256(blk, (uint64_t *)work->data);
+	}
 	return true;
 }
-#endif
 
 extern int opt_dynamic_interval;
 
@@ -1969,9 +2033,7 @@ struct device_drv opencl_api = {
 	.get_api_extra_device_status = get_opencl_api_extra_device_status,
 	.thread_prepare = opencl_thread_prepare,
 	.thread_init = opencl_thread_init,
-#ifdef USE_SHA256D
 	.prepare_work = opencl_prepare_work,
-#endif
 	.scanhash = opencl_scanhash,
 	.thread_shutdown = opencl_thread_shutdown,
 };
