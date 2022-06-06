@@ -134,6 +134,20 @@ void precalc_hash(struct opencl_work_data *blk, uint32_t *state, uint32_t *data)
 }
 #endif
 
+void precalc_sha512_256(struct rad_work_data *blk, uint64_t *data)
+{
+	blk->w0 = data[0] << 32 | data[0] >> 32;
+	blk->w1 = data[1] << 32 | data[1] >> 32;
+	blk->w2 = data[2] << 32 | data[2] >> 32;
+	blk->w3 = data[3] << 32 | data[3] >> 32;
+	blk->w4 = data[4] << 32 | data[4] >> 32;
+	blk->w5 = data[5] << 32 | data[5] >> 32;
+	blk->w6 = data[6] << 32 | data[6] >> 32;
+	blk->w7 = data[7] << 32 | data[7] >> 32;
+	blk->w8 = data[8] << 32 | data[8] >> 32;
+	blk->w9 = data[9] << 32 | data[9] >> 32;
+}
+
 struct pc_data {
 	struct thr_info *thr;
 	struct work work;

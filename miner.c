@@ -517,6 +517,7 @@ float drv_min_nonce_diff(const struct device_drv * const drv, struct cgpu_info *
 #ifdef USE_SHA256D
 	return (malgo->algo == POW_SHA256D) ? 1. : -1.;
 #else
+	return (malgo->algo == POW_SHA512_256D) ? 1. : -1.;
 	return -1.;
 #endif
 }
@@ -1062,7 +1063,7 @@ void blkchain_init_block(struct blockchain_info * const blkchain)
 	blkchain->currentblk = dummy_block;
 }
 
-extern struct mining_algorithm malgo_sha256d;
+extern struct mining_algorithm malgo_sha512_256d;
 
 struct mining_goal_info *get_mining_goal(const char * const name)
 {
@@ -1086,12 +1087,7 @@ struct mining_goal_info *get_mining_goal(const char * const name)
 			.blkchain = blkchain,
 			.current_diff = 0xFFFFFFFFFFFFFFFFULL,
 		};
-#ifdef USE_SHA256D
-		goal_set_malgo(goal, &malgo_sha256d);
-#else
-		// NOTE: Basically random default
-		goal_set_malgo(goal, mining_algorithms);
-#endif
+		goal_set_malgo(goal, &malgo_sha512_256d);
 		HASH_ADD_KEYPTR(hh, mining_goals, goal->name, strlen(goal->name), goal);
 		HASH_SORT(mining_goals, mining_goals_name_cmp);
 		

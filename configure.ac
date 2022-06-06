@@ -389,8 +389,9 @@ AM_CONDITIONAL([USE_UDEVRULES_GROUP], [$use_udevrules_group])
 AC_SUBST([UDEVRULES_GROUP], [$udevrules_group])
 
 
+BFG_ALGO(SHA512_256d,yes)
 BFG_ALGO(Keccak,no)
-BFG_ALGO(SHA256d,yes)
+BFG_ALGO(SHA256d,no)
 BFG_ALGO(scrypt,no)
 
 lowl_pci=no

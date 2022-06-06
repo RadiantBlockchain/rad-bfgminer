@@ -112,6 +112,19 @@ struct opencl_work_data {
 };
 #endif
 
+struct rad_work_data {
+	cl_ulong w0;
+	cl_ulong w1;
+	cl_ulong w2;
+	cl_ulong w3;
+	cl_ulong w4;
+	cl_ulong w5;
+	cl_ulong w6;
+	cl_ulong w7;
+	cl_ulong w8;
+	cl_ulong w9;
+};
+
 extern void opencl_early_init();
 extern char *print_ndevs_and_exit(int *ndevs);
 extern void *reinit_gpu(void *userdata);
