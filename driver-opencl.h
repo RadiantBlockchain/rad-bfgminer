@@ -123,6 +123,15 @@ struct rad_work_data {
 	cl_ulong w7;
 	cl_ulong w8;
 	cl_ulong w9;
+
+	cl_ulong ctx_a;
+	cl_ulong ctx_b;
+	cl_ulong ctx_c;
+	cl_ulong ctx_d;
+	cl_ulong ctx_e;
+	cl_ulong ctx_f;
+	cl_ulong ctx_g;
+	cl_ulong ctx_h;
 };
 
 extern void opencl_early_init();

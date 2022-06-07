@@ -20,6 +20,8 @@
 #include "findnonce.h"
 #include "miner.h"
 
+#define rotr(x,y) ((x>>y) | (x<<(sizeof(x)*8-y)))
+
 #ifdef USE_SHA256D
 const uint32_t SHA256_K[64] = {
 	0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -41,7 +43,6 @@ const uint32_t SHA256_K[64] = {
 };
 
 #define rotate(x,y) ((x<<y) | (x>>(sizeof(x)*8-y)))
-#define rotr(x,y) ((x>>y) | (x<<(sizeof(x)*8-y)))
 
 #define R(a, b, c, d, e, f, g, h, w, k) \
 	h = h + (rotate(e, 26) ^ rotate(e, 21) ^ rotate(e, 7)) + (g ^ (e & (f ^ g))) + k + w; \
@@ -134,6 +135,66 @@ void precalc_hash(struct opencl_work_data *blk, uint32_t *state, uint32_t *data)
 }
 #endif
 
+#define SHA512_256_R(a, b, c, d, e, f, g, h, w, k) \
+	h = h + (rotr(e, 14) ^ rotr(e, 18) ^ rotr(e, 41)) + (g ^ (e & (f ^ g))) + k + w; \
+	d = d + h; \
+	h = h + (rotr(a, 28) ^ rotr(a, 34) ^ rotr(a, 39)) + ((a & b) | (c & (a | b)))
+
+#define sha512_S0(x) (rotr(x, 28) ^ rotr(x, 34) ^ rotr(x, 39))
+#define sha512_S1(x) (rotr(x, 14) ^ rotr(x, 18) ^ rotr(x, 41))
+#define sha512_s0(x) (rotr(x,  1) ^ rotr(x,  8) ^ (x >> 7))
+#define sha512_s1(x) (rotr(x, 19) ^ rotr(x, 61) ^ (x >>  6))
+
+const uint64_t SHA512_256_K[80] = {
+	0x428a2f98d728ae22ULL, 0x7137449123ef65cdULL,
+	0xb5c0fbcfec4d3b2fULL, 0xe9b5dba58189dbbcULL,
+	0x3956c25bf348b538ULL, 0x59f111f1b605d019ULL,
+	0x923f82a4af194f9bULL, 0xab1c5ed5da6d8118ULL,
+	0xd807aa98a3030242ULL, 0x12835b0145706fbeULL,
+	0x243185be4ee4b28cULL, 0x550c7dc3d5ffb4e2ULL,
+	0x72be5d74f27b896fULL, 0x80deb1fe3b1696b1ULL,
+	0x9bdc06a725c71235ULL, 0xc19bf174cf692694ULL,
+	0xe49b69c19ef14ad2ULL, 0xefbe4786384f25e3ULL,
+	0x0fc19dc68b8cd5b5ULL, 0x240ca1cc77ac9c65ULL,
+	0x2de92c6f592b0275ULL, 0x4a7484aa6ea6e483ULL,
+	0x5cb0a9dcbd41fbd4ULL, 0x76f988da831153b5ULL,
+	0x983e5152ee66dfabULL, 0xa831c66d2db43210ULL,
+	0xb00327c898fb213fULL, 0xbf597fc7beef0ee4ULL,
+	0xc6e00bf33da88fc2ULL, 0xd5a79147930aa725ULL,
+	0x06ca6351e003826fULL, 0x142929670a0e6e70ULL,
+	0x27b70a8546d22ffcULL, 0x2e1b21385c26c926ULL,
+	0x4d2c6dfc5ac42aedULL, 0x53380d139d95b3dfULL,
+	0x650a73548baf63deULL, 0x766a0abb3c77b2a8ULL,
+	0x81c2c92e47edaee6ULL, 0x92722c851482353bULL,
+	0xa2bfe8a14cf10364ULL, 0xa81a664bbc423001ULL,
+	0xc24b8b70d0f89791ULL, 0xc76c51a30654be30ULL,
+	0xd192e819d6ef5218ULL, 0xd69906245565a910ULL,
+	0xf40e35855771202aULL, 0x106aa07032bbd1b8ULL,
+	0x19a4c116b8d2d0c8ULL, 0x1e376c085141ab53ULL,
+	0x2748774cdf8eeb99ULL, 0x34b0bcb5e19b48a8ULL,
+	0x391c0cb3c5c95a63ULL, 0x4ed8aa4ae3418acbULL,
+	0x5b9cca4f7763e373ULL, 0x682e6ff3d6b2b8a3ULL,
+	0x748f82ee5defb2fcULL, 0x78a5636f43172f60ULL,
+	0x84c87814a1f0ab72ULL, 0x8cc702081a6439ecULL,
+	0x90befffa23631e28ULL, 0xa4506cebde82bde9ULL,
+	0xbef9a3f7b2c67915ULL, 0xc67178f2e372532bULL,
+	0xca273eceea26619cULL, 0xd186b8c721c0c207ULL,
+	0xeada7dd6cde0eb1eULL, 0xf57d4f7fee6ed178ULL,
+	0x06f067aa72176fbaULL, 0x0a637dc5a2c898a6ULL,
+	0x113f9804bef90daeULL, 0x1b710b35131c471bULL,
+	0x28db77f523047d84ULL, 0x32caab7b40c72493ULL,
+	0x3c9ebe0a15c9bebcULL, 0x431d67c49c100d4cULL,
+	0x4cc5d4becb3e42b6ULL, 0x597f299cfc657e2aULL,
+	0x5fcb6fab3ad6faecULL, 0x6c44198c4a475817ULL
+};
+
+uint64_t SHA512_256_H[8] = {
+	0x22312194FC2BF72CULL, 0x9F555FA3C84C64C2ULL,
+	0x2393B86B6F53B151ULL, 0x963877195940EABDULL,
+	0x96283EE2A88EFFE3ULL, 0xBE5E1E2553863992ULL,
+	0x2B0199FC2C85B8AAULL, 0x0EB72DDC81C52CA2ULL
+};
+
 void precalc_sha512_256(struct rad_work_data *blk, uint64_t *data)
 {
 	blk->w0 = data[0] << 32 | data[0] >> 32;
@@ -146,6 +207,36 @@ void precalc_sha512_256(struct rad_work_data *blk, uint64_t *data)
 	blk->w7 = data[7] << 32 | data[7] >> 32;
 	blk->w8 = data[8] << 32 | data[8] >> 32;
 	blk->w9 = data[9] << 32 | data[9] >> 32;
+
+	cl_ulong A, B, C, D, E, F, G, H;
+
+	A = SHA512_256_H[0];
+	B = SHA512_256_H[1];
+	C = SHA512_256_H[2];
+	D = SHA512_256_H[3];
+	E = SHA512_256_H[4];
+	F = SHA512_256_H[5];
+	G = SHA512_256_H[6];
+	H = SHA512_256_H[7];
+
+	SHA512_256_R(A, B, C, D, E, F, G, H, blk->w0, SHA512_256_K[0]);
+	SHA512_256_R(H, A, B, C, D, E, F, G, blk->w1, SHA512_256_K[1]);
+	SHA512_256_R(G, H, A, B, C, D, E, F, blk->w2, SHA512_256_K[2]);
+	SHA512_256_R(F, G, H, A, B, C, D, E, blk->w3, SHA512_256_K[3]);
+	SHA512_256_R(E, F, G, H, A, B, C, D, blk->w4, SHA512_256_K[4]);
+	SHA512_256_R(D, E, F, G, H, A, B, C, blk->w5, SHA512_256_K[5]);
+	SHA512_256_R(C, D, E, F, G, H, A, B, blk->w6, SHA512_256_K[6]);
+	SHA512_256_R(B, C, D, E, F, G, H, A, blk->w7, SHA512_256_K[7]);
+	SHA512_256_R(A, B, C, D, E, F, G, H, blk->w8, SHA512_256_K[8]);
+
+	blk->ctx_a = A;
+	blk->ctx_b = B;
+	blk->ctx_c = C;
+	blk->ctx_d = D;
+	blk->ctx_e = E;
+	blk->ctx_f = F;
+	blk->ctx_g = G;
+	blk->ctx_h = H;
 }
 
 struct pc_data {
