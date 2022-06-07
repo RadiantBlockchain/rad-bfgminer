@@ -1040,6 +1040,15 @@ cl_int queue_rad_kernel(const struct opencl_kernel_info * const kinfo, _clState 
 	CL_SET_BLKARG_LONG(w8);
 	CL_SET_BLKARG_LONG(w9);
 
+	CL_SET_BLKARG_LONG(ctx_a);
+	CL_SET_BLKARG_LONG(ctx_b);
+	CL_SET_BLKARG_LONG(ctx_c);
+	CL_SET_BLKARG_LONG(ctx_d);
+	CL_SET_BLKARG_LONG(ctx_e);
+	CL_SET_BLKARG_LONG(ctx_f);
+	CL_SET_BLKARG_LONG(ctx_g);
+	CL_SET_BLKARG_LONG(ctx_h);
+
 	nonces = alloca(sizeof(uint) * vwidth);
 	for (i = 0; i < vwidth; i++)
 		nonces[i] = work->blk.nonce + i;
