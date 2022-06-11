@@ -6,11 +6,9 @@ LABEL description="Custom docker image for rad-bfgminer"
 
 ARG DEBIAN_FRONTEND=nointeractive
 
+RUN apt update
 RUN apt-get install -y nodejs
-
-RUN apt-ge install -y curl
-
-RUN curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+RUN apt-get install -y curl
 
 ENV PACKAGES="\
   build-essential \
@@ -37,24 +35,16 @@ ENV PACKAGES="\
 RUN apt update && apt install --no-install-recommends -y $PACKAGES  && \
     rm -rf /var/lib/apt/lists/* && \
     apt clean
-
  
-# TODO implement CGMINER at future point
-# Currently supports Novo
-RUN git clone https://github.com/Bit90pool/novo-cgminer.git /root/novo-cgminer
-WORKDIR /root/novo-cgminer
-RUN chmod +x auto_compile.sh && \
-    ./auto_compile.sh
- 
-RUN git config --global url.https://github.com/.insteadOf git://github.com/
 RUN git clone https://github.com/radiantblockchain/rad-bfgminer.git /root/rad-bfgminer
 WORKDIR /root/rad-bfgminer
-RUN autogen.sh && configure --enable-opencl && make
+RUN git config --global url.https://github.com/.insteadOf git://github.com/
+RUN ./autogen.sh
+RUN ./configure --enable-opencl
+RUN make
 
-
-# ./bfgminer -S opencl:auto -o http://node.radiantblockchain.org:7332 -u raduser -p radpass
-
-
+WORKDIR /root/rad-bfgminer/minerscript-js
+RUN npm install
 
 #CMD ["/usr/sbin/ssgd", "-D"]
 CMD ["bash"]
