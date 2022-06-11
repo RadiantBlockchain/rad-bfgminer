@@ -7,8 +7,11 @@ LABEL description="Custom docker image for rad-bfgminer"
 ARG DEBIAN_FRONTEND=nointeractive
 
 RUN apt update
+
 RUN apt-get install -y nodejs
 RUN apt-get install -y curl
+
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 
 ENV PACKAGES="\
   build-essential \
@@ -43,8 +46,8 @@ RUN ./autogen.sh
 RUN ./configure --enable-opencl
 RUN make
 
-WORKDIR /root/rad-bfgminer/minerscript-js
-RUN npm install
+#WORKDIR /root/rad-bfgminer/minerscript-js
+#RUN npm install
 
 #CMD ["/usr/sbin/ssgd", "-D"]
 CMD ["bash"]
