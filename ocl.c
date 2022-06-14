@@ -891,7 +891,7 @@ bool opencl_get_kernel_binary(struct cgpu_info * const cgpu, _clState * const cl
 	applog(LOG_DEBUG, "%s: Binary size found in binary slot %u: %"PRId64, cgpu->dev_repr, (unsigned)slot, (int64_t)binary_sizes[slot]);
 	if (!binary_sizes[slot])
 		applogr(false, LOG_ERR, "OpenCL compiler generated a zero sized binary, FAIL!");
-	status = clGetProgramInfo(kernelinfo->program, CL_PROGRAM_BINARIES, sizeof(binaries), binaries, NULL);
+	status = clGetProgramInfo(kernelinfo->program, CL_PROGRAM_BINARIES, sizeof(uint8_t *) * cpnd, binaries, NULL);
 	if (unlikely(status != CL_SUCCESS))
 		applogr(false, LOG_ERR, "Error %d: Getting program info. CL_PROGRAM_BINARIES (clGetProgramInfo)", status);
 	
