@@ -2643,6 +2643,12 @@ static bool parse_notify(struct pool *pool, json_t *val)
 	if (!job_id)
 		goto out;
 
+	if (pool->swork.job_id != NULL && !strcmp(job_id, pool->swork.job_id)) {
+		applog(LOG_DEBUG, "Duplicate job_id received %s", job_id);
+		ret = pool->stratum_notify;
+		goto out;
+	}
+
 	cg_wlock(&pool->data_lock);
 	cgtime(&pool->swork.tv_received);
 	free(pool->swork.job_id);
