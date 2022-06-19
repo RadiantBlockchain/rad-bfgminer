@@ -168,4 +168,4 @@ CMD ["bash"]
 # python3 -m pip install pylru
 # python3 -m pip install pycryptodome
 #
-#
+#/root/rad-bfgminer/bfgminer -S opencl:auto -o http://52.10.53.53:7332 -u raduser -p radpass --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X --set-device OCL0:kernel=poclbm --set-device OCL1:kernel=poclbm  --set-device OCL2:kernel=poclbm  --set-device OCL3:kernel=poclbm  
