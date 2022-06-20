@@ -36,6 +36,19 @@ ENV PACKAGES="\
   uthash-dev \
   nodejs \
   vim \
+  libboost-chrono-dev \
+  libboost-filesystem-dev \
+  libboost-test-dev \
+  libboost-thread-dev \
+  libevent-dev \
+  libminiupnpc-dev \
+  libssl-dev \
+  libzmq3-dev \ 
+  help2man \
+  ninja-build \
+  python3 \
+  libdb++-dev \
+  wget \
 "
 
 RUN apt update && apt install --no-install-recommends -y $PACKAGES  && \
@@ -57,21 +70,40 @@ RUN git clone https://github.com/RadiantBlockchain/rad-bfgminer-helper.git /root
 WORKDIR /root/rad-bfgminer-helper
 RUN npm install
 
+# Install cmake to prepare for radiant-node
+RUN mkdir /root/cmaketmp
+WORKDIR /root/cmaketmp
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz
+RUN tar -zxvf cmake-3.20.0.tar.gz
+WORKDIR /root/cmake-3.20.0
+RUN ./bootstrap
+RUN make
+RUN make install
+
+# Install radiant-node
+WORKDIR /root
+RUN git clone https://github.com/radiantblockchain/radiant-node.git
+RUN mkdir /root/radiant-node/build
+WORKDIR /root/radiant-node/build
+RUN /root/cmaketmp/cmake-3.20.0/bin/cmake -GNinja .. -DBUILD_RADIANT_QT=OFF
+RUN ninja
+
+ENTRYPOINT ["/usr/local/bin/radiantd -rpcworkqueue=64 -rpcthreads=64 -rest -server -rpcbind -rpcallowip='0.0.0.0/0' -txindex=1 -rpcuser=raduser -rpcpassword=radpass"]
+ 
 # Load up a shell to be able to run on vast.ai and connect
 CMD ["bash"]
 
-#
-#
 # Once you login you will see a folder structure like:
 #
 # root@C.482204:~$ ls
 # onstart.sh  rad-bfgminer  rad-bfgminer-helper
 # root@C.482204:~$ 
 #
-# Launch rad-bfgminer like:
+# Launch rad-bfgminer like (specify url to the radiantd node process or a stratum server)
 #
-# /root/rad-bfgminer/bfgminer -S opencl:auto -o http://miner.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 1KSFaegQYMgQRfr2jWfHxy5pv6CQvHB5Lz >> /root/bfgminer.txt 
-#
+# /root/rad-bfgminer/bfgminer -S opencl:auto -o http://127.0.0.1:7332 -u raduser -p radpass --set-device OCL:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X
+# /root/rad-bfgminer/bfgminer -S opencl:auto -o http://miner.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X >> /root/bfgminer.txt 
+# /root/rad-bfgminer/bfgminer -S opencl:auto -o http://miner.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL0:kernel=poclbm --set-device OCL1:kernel=poclbm --set-device OCL2:kernel=poclbm --set-device OCL3:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X
 # The above command will begin mining and generating any coinbase rewards into 1KSFaegQYMgQRfr2jWfHxy5pv6CQvHB5Lz
 #
 #
@@ -84,7 +116,7 @@ CMD ["bash"]
 # 
 # node start_radbfgminer.js          
 #----------------------------------------------------
-# Mnemonic seed phrase random every time (NOT USED) --> favorite success manual property energy cry feel shift celery alter fluid bullet <--
+# Mnemonic seed phrase random every time (NOT USED) --> this success manual property energy cry feel shift celery not valid no bullet <--
 # Showing first address associated with the random mnemonic seed phrase... 
 # Address:  13rXNRH2afHmhGdWGZfz9KMusfRQ7TVxaz
 # Private Key WIF:  KxK2f6eKvRcHsoFjmWDQkkANXpmp1Bi4Qhhdbj1k8Yhkn2pA
@@ -120,53 +152,4 @@ CMD ["bash"]
 #
 # Look inside rad-bfgminer-helper/minerIndex.json and see which key index is being used (it will increment on each new found block)
 
-
-
-#
-# ------- MISC SETUPS --------
-# Audience: Developers who want to host radiantd or electrumx or other services like block explorer
-#
-#
-
-# Setup Electrumx to server UTXOS and blockchain data
-#
-# git clone https://github.com/RadiantBlockchain/electrumx.git
-#
-#
-#
-# Create prod.env in the electrumx
-#
-#
-#$ cat ./prod.env 
-#DAEMON_URL=http://raduser:radpass@localhost:7332/
-#
-#COIN=BitcoinSV
-#
-#REQUEST_TIMEOUT=60
-#
-#DB_DIRECTORY=/home/ubuntu/electrumdb
-#
-#DB_ENGINE=leveldb
-#
-#SERVICES=tcp://:50010
-#HOST=""
-#
-#ALLOW_ROOT=true
-#
-#CACHE_MB=300
-#
-# mkdir /home/ubuntu/electrumdb
-#
-# Install python3 package manager pip to begin install deps
-#
-# sudo apt install python3-pip
-#
-# Install deps:
-# 
-# python3 -m pip install aiorpcx
-# python3 -m pip install aiohttp
-# python3 -m pip install pylru
-# python3 -m pip install pycryptodome
-#
-#
-#
+ 
