@@ -69,10 +69,10 @@ Navigate to the `rad-bfgminer` directory and execute the following command. *Ple
 cd rad-bfgminer
 ```
 
-Run the miner with all options to enable GPU, URL endpoint to an existing node (Ex: `miner.radiantblockchain.org:7332` can be replaced with your own node URL if you wish or leave it as is)
+Run the miner with all options to enable GPU, URL endpoint to an existing node (Ex: `master.radiantblockchain.org:7332` can be replaced with your own node URL if you wish or leave it as is)
 
 ```
-/root/rad-bfgminer/bfgminer -S opencl:auto -o http://miner.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL:kernel=poclbm --coinbase-sig hello-miner --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X 
+/root/rad-bfgminer/bfgminer -S opencl:auto -o http://master.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL:kernel=poclbm --coinbase-sig hello-miner --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X 
 ```
 EX: replace `16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X` with your public address and replace `hello-miner` with your miner id (keep it short, no spaces allowed)
 
@@ -111,15 +111,15 @@ make
 Single GPU example:
 
 ```
-./bfgminer -S opencl:auto -o http://miner.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X 
+./bfgminer -S opencl:auto -o http://master.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X 
 
-./bfgminer -S opencl:auto -o http://miner.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X 
+./bfgminer -S opencl:auto -o http://master.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X 
 ```
 
 4x GPU example:
 
 ```
-./bfgminer -S opencl:auto -o http://miner.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL0:kernel=poclbm --set-device OCL1:kernel=poclbm --set-device OCL2:kernel=poclbm --set-device OCL3:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X
+./bfgminer -S opencl:auto -o http://master.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL0:kernel=poclbm --set-device OCL1:kernel=poclbm --set-device OCL2:kernel=poclbm --set-device OCL3:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X
 ```
 
 *Note*: Ensure you replace `rad-bfgminer-misc` with your miner id and also the `--generate-to` address to the public address you generated with bitaddress.org (Use at your own risk!)
