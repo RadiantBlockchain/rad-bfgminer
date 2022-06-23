@@ -3,8 +3,13 @@
 
 This miner has been modified to work with Radiant (RAD) Blockchain's SHA512/256 algorithm
 
-## See Dockerfile for quick start
-###
+Clicking on any block will bring up details about that block, transactions included and the miner information.
+
+[Open Radiant (RAD) Mining Guide](MINING_RAD_GUIDE.md)
+
+## Quick Start How to Clone and Build.
+
+For additional details see the [Dockerfile](Dockerfile)
 
 ```
 git clone https://github.com/radiantblockchain/rad-bfgminer.git /root/rad-bfgminer
