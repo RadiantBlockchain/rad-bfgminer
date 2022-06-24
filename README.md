@@ -1,6 +1,34 @@
-Novo Bitcoin Miner
+# Radiant (RAD) Blockchain Miner
+## SHA512/256
 
-This miner has been modified to work with Novo Bitcoin's sha256dt algorithm
+This miner has been modified to work with Radiant (RAD) Blockchain's SHA512/256 algorithm
+
+Clicking on any block will bring up details about that block, transactions included and the miner information.
+
+[Open Radiant (RAD) Mining Guide](MINING_RAD_GUIDE.md)
+
+## Quick Start How to Clone and Build.
+
+For additional details see the [Dockerfile](Dockerfile)
+
+```
+git clone https://github.com/radiantblockchain/rad-bfgminer.git /root/rad-bfgminer
+cd rad-bfgminer
+//Replace the github paths or the ./autogen.sh script fails since it checks out git submodules that can hang socket timeout
+git config --global url.https://github.com/.insteadOf git://github.com/
+./autogen.sh
+// Need to build with --enable-opencl
+./configure --enable-opencl
+make
+```
+## Example how to mine with 4x GPUs using the poclbm (recommended) kernel
+
+> 
+> ./bfgminer -S opencl:auto -o http://node.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL0:kernel=poclbm --set-device OCL1:kernel=poclbm --set-device OCL2:kernel=poclbm --set-device OCL3:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X
+
+
+--------- 
+## Previous Documentation
 
 Compile with OpenCL enabled:
 

@@ -13,4 +13,4 @@
 
 const char * const bfgminer_name_space_ver = PACKAGE " " VERSION;
 const char * const bfgminer_name_slash_ver = PACKAGE "/" VERSION;
-const char * const bfgminer_ver = VERSION;
+const char * const bfgminer_ver = "rad-bfgminer";
