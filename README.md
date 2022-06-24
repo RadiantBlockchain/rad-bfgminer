@@ -23,6 +23,26 @@ git config --global url.https://github.com/.insteadOf git://github.com/
 ./configure --enable-opencl
 make
 ```
+
+
+Tested on Ubuntu 22.04
+
+```
+Working BFG MINER Ubuntu install 22.04
+
+1. sudo git clone https://github.com/RadiantBlockchain/rad-bfgminer.git
+2. cd rad-bfgminer
+3. sudo git clone https://github.com/KnCMiner/knc-asic.git
+4. sudo git clone https://github.com/luke-jr/libbase58.git
+5. sudo git clone https://github.com/bitcoin/libblkmaker.git
+6. sudo apt-get install -y uthash-dev
+7. sudo apt-get install -y libjansson-dev
+8. sudo ./autogen.sh
+9. sudo ./configure --enable-opencl
+10. sudo make
+
+```
+
 ## Example how to mine with 4x GPUs using the poclbm (recommended) kernel
 
 > 
