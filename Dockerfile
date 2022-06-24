@@ -71,24 +71,24 @@ WORKDIR /root/rad-bfgminer-helper
 RUN npm install
 
 # Install cmake to prepare for radiant-node
-RUN mkdir /root/cmaketmp
-WORKDIR /root/cmaketmp
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz
-RUN tar -zxvf cmake-3.20.0.tar.gz
-WORKDIR /root/cmake-3.20.0
-RUN ./bootstrap
-RUN make
-RUN make install
+# RUN mkdir /root/cmaketmp
+# WORKDIR /root/cmaketmp
+# RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz
+# RUN tar -zxvf cmake-3.20.0.tar.gz
+# WORKDIR /root/cmake-3.20.0
+# RUN ./bootstrap
+# RUN make
+# RUN make install
 
 # Install radiant-node
 WORKDIR /root
-RUN git clone https://github.com/radiantblockchain/radiant-node.git
-RUN mkdir /root/radiant-node/build
-WORKDIR /root/radiant-node/build
-RUN /root/cmaketmp/cmake-3.20.0/bin/cmake -GNinja .. -DBUILD_RADIANT_QT=OFF
-RUN ninja
+# # RUN git clone https://github.com/radiantblockchain/radiant-node.git
+# RUN mkdir /root/radiant-node/build
+# WORKDIR /root/radiant-node/build
+# RUN /root/cmaketmp/cmake-3.20.0/bin/cmake -GNinja .. -DBUILD_RADIANT_QT=OFF
+# RUN ninja
 
-ENTRYPOINT ["/usr/local/bin/radiantd -rpcworkqueue=64 -rpcthreads=64 -rest -server -rpcbind -rpcallowip='0.0.0.0/0' -txindex=1 -rpcuser=raduser -rpcpassword=radpass"]
+# ENTRYPOINT ["/usr/local/bin/radiantd -rpcworkqueue=64 -rpcthreads=64 -rest -server -rpcbind -rpcallowip='0.0.0.0/0' -txindex=1 -rpcuser=raduser -rpcpassword=radpass"]
  
 # Load up a shell to be able to run on vast.ai and connect
 CMD ["bash"]

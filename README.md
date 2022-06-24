@@ -7,24 +7,26 @@ Clicking on any block will bring up details about that block, transactions inclu
 
 [Open Radiant (RAD) Mining Guide](MINING_RAD_GUIDE.md)
 
-## Quick Start How to Clone and Build.
+## FOLLOW THIS FIRST! Quick Start How to Clone and Build.
 
 For additional details see the [Dockerfile](Dockerfile)
+
+**Please Note:** Even though the commands appear to fail, they do indeed successfully build.
+
+Tested on Ubuntu 18.04
 
 ```
 git clone https://github.com/radiantblockchain/rad-bfgminer.git /root/rad-bfgminer
 cd rad-bfgminer
-//Replace the github paths or the ./autogen.sh script fails since it checks out git submodules that can hang socket timeout
 git config --global url.https://github.com/.insteadOf git://github.com/
 ./autogen.sh
-// Need to build with --enable-opencl
 ./configure --enable-opencl
 make
 ```
 ## Example how to mine with 4x GPUs using the poclbm (recommended) kernel
 
 > 
-> ./bfgminer -S opencl:auto -o http://node.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL0:kernel=poclbm --set-device OCL1:kernel=poclbm --set-device OCL2:kernel=poclbm --set-device OCL3:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to 16JR3uTBpTSnhWfLdX8D5EcMrTVhrBCr2X
+> ./bfgminer -S opencl:auto -o http://node.radiantblockchain.org:7332 -u raduser -p radpass --set-device OCL0:kernel=poclbm --set-device OCL1:kernel=poclbm --set-device OCL2:kernel=poclbm --set-device OCL3:kernel=poclbm --coinbase-sig rad-bfgminer-misc --generate-to <your address> (Use https://bitaddres.org at your own risk to generate an address)
 
 
 --------- 
