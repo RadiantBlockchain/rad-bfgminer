@@ -144,6 +144,8 @@ void precalc_hash(struct opencl_work_data *blk, uint32_t *state, uint32_t *data)
 #define sha512_S1(x) (rotr(x, 14) ^ rotr(x, 18) ^ rotr(x, 41))
 #define sha512_s0(x) (rotr(x,  1) ^ rotr(x,  8) ^ (x >> 7))
 #define sha512_s1(x) (rotr(x, 19) ^ rotr(x, 61) ^ (x >>  6))
+#define CH(x, y, z)  ((x & y) ^ (~x & z))
+#define MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
 
 const uint64_t SHA512_256_K[80] = {
 	0x428a2f98d728ae22ULL, 0x7137449123ef65cdULL,
@@ -228,6 +230,11 @@ void precalc_sha512_256(struct rad_work_data *blk, uint64_t *data)
 	SHA512_256_R(C, D, E, F, G, H, A, B, blk->w6, SHA512_256_K[6]);
 	SHA512_256_R(B, C, D, E, F, G, H, A, blk->w7, SHA512_256_K[7]);
 	SHA512_256_R(A, B, C, D, E, F, G, H, blk->w8, SHA512_256_K[8]);
+
+	G += sha512_S1(D) + SHA512_256_K[9] + CH(D, E, F);
+	C += G;
+	G += sha512_S0(H) + MAJ(B, H, A);
+	F += 0x8000000000000000ULL + SHA512_256_K[10];
 
 	blk->ctx_a = A;
 	blk->ctx_b = B;
