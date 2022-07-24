@@ -80,36 +80,19 @@ __constant ulong H[8] =
 
 #ifdef BITALIGN
 	#pragma OPENCL EXTENSION cl_amd_media_ops : enable
-	#define rotr(x, y) amd_bitalign((u)x, (u)x, (u)y)
+	#define rotr(x, n) ((n) < 32 ? \
+	 (amd_bitalign((uint)((x) >> 32), (uint)(x), (uint)(n)) | \
+	  ((ulong)amd_bitalign((uint)(x), (uint)((x) >> 32), (uint)(n)) << 32)) \
+	 : \
+	 (amd_bitalign((uint)(x), (uint)((x) >> 32), (uint)(n) - 32) | \
+	  ((ulong)amd_bitalign((uint)((x) >> 32), (uint)(x), (uint)(n) - 32) << 32)))
 #else
 	#define rotr(x, y) rotate((u)x, (u)(64 - y))
 #endif
-#ifdef BFI_INT
-	// Well, slight problem... It turns out BFI_INT isn't actually exposed to
-	// OpenCL (or CAL IL for that matter) in any way. However, there is 
-	// a similar instruction, BYTE_ALIGN_INT, which is exposed to OpenCL via
-	// amd_bytealign, takes the same inputs, and provides the same output. 
-	// We can use that as a placeholder for BFI_INT and have the application 
-	// patch it after compilation.
-	
-	// This is the BFI_INT function
-	#define ch(x, y, z) amd_bytealign(x, y, z)
-	
-	// Ma can also be implemented in terms of BFI_INT...
-	#define Ma(x, y, z) amd_bytealign( (z^x), (y), (x) )
 
-	// AMD's KernelAnalyzer throws errors compiling the kernel if we use
-	// amd_bytealign on constants with vectors enabled, so we use this to avoid
-	// problems. (this is used 4 times, and likely optimized out by the compiler.)
-	#define Ma2(x, y, z) bitselect((u)x, (u)y, (u)z ^ (u)x)
-#else // BFI_INT
-	//GCN actually fails if manually patched with BFI_INT
-
-	#define ch(x, y, z) bitselect((u)z, (u)y, (u)x)
-	#define Ma(x, y, z) bitselect((u)x, (u)y, (u)z ^ (u)x)
-	#define Ma2(x, y, z) Ma(x, y, z)
-#endif
-
+#define ch(x, y, z) bitselect((u)z, (u)y, (u)x)
+#define Ma(x, y, z) bitselect((u)x, (u)y, (u)z ^ (u)x)
+#define Ma2(x, y, z) Ma(x, y, z)
 
 __kernel
 __attribute__((vec_type_hint(u)))
