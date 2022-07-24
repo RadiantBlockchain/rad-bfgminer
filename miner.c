@@ -6176,7 +6176,7 @@ static void disable_curses(void)
 		delwin(logwin);
 		delwin(statuswin);
 		delwin(mainwin);
-		endwin();
+		//endwin();
 #ifdef WIN32
 		// Move the cursor to after curses output.
 		HANDLE hout = GetStdHandle(STD_OUTPUT_HANDLE);
