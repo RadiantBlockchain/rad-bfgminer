@@ -989,7 +989,7 @@ const char *opencl_tui_handle_choice(struct cgpu_info *cgpu, int input)
 
 
 #define CL_SET_BLKARG(blkvar) status |= clSetKernelArg(*kernel, num++, sizeof(uint), (void *)&blk->blkvar)
-#define CL_SET_BLKARG_LONG(blkvar) status |= clSetKernelArg(*kernel, num++, sizeof(ulong), (void *)&blk->blkvar)
+#define CL_SET_BLKARG_LONG(blkvar) status |= clSetKernelArg(*kernel, num++, sizeof(cl_ulong), (void *)&blk->blkvar)
 #define CL_SET_ARG(var) status |= clSetKernelArg(*kernel, num++, sizeof(var), (void *)&var)
 #define CL_SET_VARG(args, var) status |= clSetKernelArg(*kernel, num++, args * sizeof(uint), (void *)var)
 
