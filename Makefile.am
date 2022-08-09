@@ -17,7 +17,7 @@ EXTRA_DIST	= \
 	windows-build.txt
 
 dist_doc_DATA = \
-		  AUTHORS COPYING HACKING NEWS README \
+		  AUTHORS COPYING HACKING NEWS README.md \
 		  example.conf \
 		  README.RPC
 
