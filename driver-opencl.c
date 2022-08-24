@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 
 #include <sys/types.h>
 
@@ -46,6 +47,33 @@
 #include "ocl.h"
 #include "adl.h"
 #include "util.h"
+
+#ifdef WIN32
+uint64_t get_nano(void)
+{
+	static uint64_t ticks_per_sec;
+	LARGE_INTEGER t;
+
+	if (!ticks_per_sec) {
+		QueryPerformanceFrequency(&t);
+		ticks_per_sec = t.QuadPart;
+	}
+
+	QueryPerformanceCounter(&t);
+
+	return t.QuadPart * 1000000000ULL / ticks_per_sec;
+}
+#else
+uint64_t get_nano(void)
+{
+	struct timespec t;
+
+	clock_gettime(CLOCK_MONOTONIC, &t);
+
+	return (uint64_t)t.tv_sec * 1000000000ULL + (uint64_t)t.tv_nsec;
+}
+#endif
+
 
 /* TODO: cleanup externals ********************/
 
@@ -167,6 +195,9 @@ CL_API_ENTRY cl_int CL_API_CALL
 
 /* Flush and Finish APIs */
 CL_API_ENTRY cl_int CL_API_CALL
+(*clFlush)(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0;
+
+CL_API_ENTRY cl_int CL_API_CALL
 (*clFinish)(cl_command_queue /* command_queue */) CL_API_SUFFIX__VERSION_1_0;
 
 /* Enqueued Commands APIs */
@@ -202,6 +233,21 @@ CL_API_ENTRY cl_int CL_API_CALL
                        cl_uint          /* num_events_in_wait_list */,
                        const cl_event * /* event_wait_list */,
                        cl_event *       /* event */) CL_API_SUFFIX__VERSION_1_0;
+
+/* Event Object APIs */
+CL_API_ENTRY cl_int CL_API_CALL
+(*clWaitForEvents)(cl_uint          /* num_events */,
+                const cl_event *    /* event_list */) CL_API_SUFFIX__VERSION_1_0;
+
+CL_API_ENTRY cl_int CL_API_CALL
+(*clGetEventInfo)(cl_event      /* event */,
+               cl_event_info    /* param_name */,
+               size_t           /* param_value_size */,
+               void *           /* param_value */,
+               size_t *         /* param_value_size_ret */) CL_API_SUFFIX__VERSION_1_0;
+
+CL_API_ENTRY cl_int CL_API_CALL
+(*clReleaseEvent)(cl_event /* event */) CL_API_SUFFIX__VERSION_1_0;
 
 #ifdef WIN32
 #define dlsym (void*)GetProcAddress
@@ -249,10 +295,14 @@ load_opencl_symbols() {
 	LOAD_OCL_SYM(clCreateKernel);
 	LOAD_OCL_SYM(clReleaseKernel);
 	LOAD_OCL_SYM(clSetKernelArg);
+	LOAD_OCL_SYM(clFlush);
 	LOAD_OCL_SYM(clFinish);
 	LOAD_OCL_SYM(clEnqueueReadBuffer);
 	LOAD_OCL_SYM(clEnqueueWriteBuffer);
 	LOAD_OCL_SYM(clEnqueueNDRangeKernel);
+	LOAD_OCL_SYM(clGetEventInfo);
+	LOAD_OCL_SYM(clWaitForEvents);
+	LOAD_OCL_SYM(clReleaseEvent);
 	
 	return true;
 }
@@ -1896,20 +1946,63 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
 		return -1;
 	}
 
+	// On Windows clEnqueueNDRangeKernel is blocking without this
+	clFinish(clState->commandQueue);
+
+	cl_event kernelEvent;
 	if (kinfo->goffset)
 	{
 		size_t global_work_offset[1];
 
 		global_work_offset[0] = work->blk.nonce;
 		status = clEnqueueNDRangeKernel(clState->commandQueue, *kernel, 1, global_work_offset,
-						globalThreads, localThreads, 0,  NULL, NULL);
+						globalThreads, localThreads, 0,  NULL, &kernelEvent);
 	} else
 		status = clEnqueueNDRangeKernel(clState->commandQueue, *kernel, 1, NULL,
-						globalThreads, localThreads, 0,  NULL, NULL);
+						globalThreads, localThreads, 0,  NULL, &kernelEvent);
 	if (unlikely(status != CL_SUCCESS)) {
 		applog(LOG_ERR, "Error %d: Enqueueing kernel onto command queue. (clEnqueueNDRangeKernel)", status);
 		return -1;
 	}
+
+	clFlush(clState->commandQueue);
+
+	// Sleep to avoid Nvidia busywait
+	double us = gpu->kernel_wait_us;
+	uint64_t startnano = get_nano();
+	cl_int kernelStatus;
+	clGetEventInfo(kernelEvent, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &kernelStatus, NULL);
+	while(us >= 200 && kernelStatus != CL_COMPLETE) {
+		us *= 0.5;
+		usleep(us);
+		clGetEventInfo(kernelEvent, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &kernelStatus, NULL);
+	}
+
+	clWaitForEvents(1, &kernelEvent);
+	uint64_t delta = get_nano() - startnano;
+	unsigned int timerIndex = gpu->kernel_wait_index;
+	gpu->kernel_wait_times[timerIndex] = delta;
+
+	if (timerIndex == gpu->kernel_wait_min) {
+		// Previous minimum is being removed, find the new minimum
+		uint64_t min = 0;
+		for (unsigned int i = 1; i < 50; i++) {
+			if (gpu->kernel_wait_times[i] < gpu->kernel_wait_times[min]) {
+				min = i;
+			}
+		}
+		gpu->kernel_wait_min = min;
+		gpu->kernel_wait_us = gpu->kernel_wait_times[min] >> 10;
+	} else if (delta < gpu->kernel_wait_times[gpu->kernel_wait_min]) {
+		gpu->kernel_wait_min = timerIndex;
+		gpu->kernel_wait_us = delta >> 10;
+	}
+	gpu->kernel_wait_index++;
+	if (gpu->kernel_wait_index == 50) {
+		gpu->kernel_wait_index = 0;
+	}
+
+	clReleaseEvent(kernelEvent);
 
 	status = clEnqueueReadBuffer(clState->commandQueue, clState->outputBuffer, CL_FALSE, 0,
 				     buffersize, thrdata->res, 0, NULL, NULL);
