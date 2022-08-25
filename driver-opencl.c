@@ -327,6 +327,7 @@ extern char *opt_kernel_path;
 extern int gpur_thr_id;
 extern bool opt_noadl;
 extern bool have_opencl;
+extern bool opt_no_sleep;
 static _clState *clStates[MAX_GPUDEVICES];
 static struct opencl_kernel_interface kernel_interfaces[];
 
@@ -1970,12 +1971,14 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
 	// Sleep to avoid Nvidia busywait
 	double us = gpu->kernel_wait_us;
 	uint64_t startnano = get_nano();
-	cl_int kernelStatus;
-	clGetEventInfo(kernelEvent, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &kernelStatus, NULL);
-	while(us >= 200 && kernelStatus != CL_COMPLETE) {
-		us *= 0.5;
-		usleep(us);
+	if (!opt_no_sleep) {
+		cl_int kernelStatus;
 		clGetEventInfo(kernelEvent, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &kernelStatus, NULL);
+		while(us >= 200 && kernelStatus != CL_COMPLETE) {
+			us *= 0.5;
+			usleep(us);
+			clGetEventInfo(kernelEvent, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &kernelStatus, NULL);
+		}
 	}
 
 	clWaitForEvents(1, &kernelEvent);

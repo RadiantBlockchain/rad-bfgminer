@@ -243,6 +243,7 @@ bool opt_disable_client_reconnect = false;
 static bool no_work;
 bool opt_worktime;
 bool opt_weighed_stats;
+bool opt_no_sleep = false;
 
 char *opt_kernel_path;
 char *cgminer_path;
@@ -2829,6 +2830,9 @@ static struct opt_table opt_config_table[] = {
 			"Display extra work time debug information"),
 	OPT_WITH_ARG("--pools",
 			opt_set_bool, NULL, NULL, opt_hidden),
+	OPT_WITHOUT_ARG("--no-sleep",
+			opt_set_bool, &opt_no_sleep,
+			"Don't sleep while waiting for OpenCL kernel"),
 	OPT_ENDTABLE
 };
 
@@ -8541,7 +8545,8 @@ static void set_options(void)
 	immedok(logwin, true);
 	loginput_mode(8);
 retry:
-	wlogprint("\n[L]ongpoll: %s\n", want_longpoll ? "On" : "Off");
+	wlogprint("\n[N]o sleep: %s\n", opt_no_sleep ? "On" : "Off");
+	wlogprint("[L]ongpoll: %s\n", want_longpoll ? "On" : "Off");
 	wlogprint("[Q]ueue: %d\n[S]cantime: %d\n[E]xpiry: %d\n[R]etries: %d\n"
 		  "[W]rite config file\n[B]FGMiner restart\n",
 		opt_queue, opt_scantime, opt_expiry, opt_retries);
@@ -8556,6 +8561,10 @@ retry:
 			goto retry;
 		}
 		opt_queue = selected;
+		goto retry;
+	} else if (!strncasecmp(&input, "n", 1)) {
+		opt_no_sleep = !opt_no_sleep;
+		applog(LOG_WARNING, "No sleep %s", opt_no_sleep ? "enabled" : "disabled");
 		goto retry;
 	} else if (!strncasecmp(&input, "l", 1)) {
 		if (want_longpoll)
