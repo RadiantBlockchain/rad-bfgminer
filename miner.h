@@ -535,6 +535,11 @@ struct cgpu_info {
 	pthread_mutex_t		device_mutex;
 	pthread_cond_t	device_cond;
 
+	uint64_t kernel_wait_times[50];
+	double kernel_wait_us;
+	unsigned int kernel_wait_index;
+	unsigned int kernel_wait_min;
+
 	enum dev_enable deven;
 	bool already_set_defaults;
 	int accepted;

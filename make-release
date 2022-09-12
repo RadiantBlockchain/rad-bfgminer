@@ -15,7 +15,7 @@ sw="$1"; shift || true
 
 test -n "$DEBUG_RELEASE" || DEBUG_RELEASE=1
 
-builds=(win32 win64)
+builds=(win64)
 
 win32_machine='i686-pc-mingw32'
 win32_CFLAGS='-march=i686'
@@ -41,7 +41,7 @@ sed 's/^\[submodule "\(.*\)"\]$/\1/;t;d' .gitmodules |
 done
 git submodule update --init
 {
-	git archive --prefix "$sw"/ --format tar "$tag"
+	git archive --prefix "$sw"/ --format tar TMP
 	git submodule --quiet foreach --recursive 'test x$name = xccan || git archive --prefix "'"$sw"'/$path/" --format tar HEAD'
 	(
 		cd ccan-upstream
@@ -65,7 +65,7 @@ docs='
 	AUTHORS
 	COPYING
 	NEWS
-	README
+	README.md
 	README.ASIC
 	README.FPGA
 	README.GPU
@@ -92,13 +92,6 @@ for build in "${builds[@]}"; do
 		CFLAGS="${CFLAGS} -Wall" \
 		--disable-cpumining \
 		--enable-opencl \
-		--enable-adl \
-		--enable-bitforce \
-		--enable-icarus \
-		--enable-modminer \
-		--enable-ztex \
-		--enable-keccak \
-		--enable-scrypt \
 		--without-system-libbase58 \
 		--host="$machine"
 	make $MAKEOPTS
@@ -112,7 +105,7 @@ for build in "${builds[@]}"; do
 		*.exe \
 		libblkmaker/.libs/*.dll \
 		libbase58/.libs/*.dll \
-		opencl \
+		opencl/rad.cl \
 		example.conf \
 		windows-build.txt \
 		miner.php \
@@ -165,6 +158,8 @@ for build in "${builds[@]}"; do
 			for my $check_libdir (
 				"/usr/$machine/usr/lib",
 				"/usr/$machine/usr/bin",
+				"/usr/$machine/lib",
+				"/usr/$machine/bin",
 			) {
 				$dll = ciexist "$check_libdir/${dlllc}";
 				if ($dll) {
@@ -174,11 +169,12 @@ for build in "${builds[@]}"; do
 			}
 			if (not defined $libdir) {
 				return if $opt;
-				die "Cannot find $dlllc\n"
+				printf("Cannot find $dlllc\n")
+			} else {
+				system("cp -v -L \"$libdir/$dll\" \"$PKGDIR\"") && die "Copy $dll failed\n";
+				system("\"${machine}-strip\" \"$PKGDIR/$dll\"") && die "Strip $dll failed\n";
+				push @todo, $dll;
 			}
-			system("cp -v -L \"$libdir/$dll\" \"$PKGDIR\"") && die "Copy $dll failed\n";
-			system("\"${machine}-strip\" \"$PKGDIR/$dll\"") && die "Strip $dll failed\n";
-			push @todo, $dll;
 			$have{$dlllc} = undef;
 			1
 		}
